@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クローゼットアプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>クローゼット</h1>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="content" id="content">
+            <!-- ホーム画面 -->
+            <div id="home-screen" class="space-y-6">
+                <!-- 天気情報 -->
+                <div class="weather-card">
+                    <div class="weather-content">
+                        <div class="weather-info">
+                            <h2>今日の天気</h2>
+                            <p class="weather-temp" id="weather-temp">読み込み中...</p>
+                            <p class="weather-desc" id="weather-desc">-</p>
+                        </div>
+                        <div id="weather-icon" class="weather-icon weather-icon-sunny">
+                            ☀️
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 今日の服装 -->
+                <div class="card">
+                    <h3 class="section-title">
+                        👔 今日の服装
+                    </h3>
+                    <div id="today-outfit" class="empty-state">
+                        まだ記録されていません
+                    </div>
+                </div>
+
+                <!-- おすすめ -->
+                <div class="card">
+                    <h3 class="section-title">
+                        ✨ 今日のおすすめ
+                    </h3>
+                    <div id="recommendations" class="space-y-3">
+                        <p class="empty-state">服を登録してください</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 服管理画面 -->
+            <div id="clothes-screen" class="space-y-4 hidden">
+                <div class="section-header">
+                    <h2>服の管理</h2>
+                    <button onclick="showAddClothes()" class="add-button">
+                        ➕
+                    </button>
+                </div>
+
+                <div id="clothes-list" class="space-y-4">
+                    <p class="empty-state-large">服を追加してください</p>
+                </div>
+            </div>
+
+            <!-- カレンダー画面 -->
+            <div id="calendar-screen" class="space-y-4 hidden">
+                <h2>着用履歴</h2>
+                
+                <input
+                    type="date"
+                    id="date-picker"
+                    onchange="updateSelectedDate()"
+                    class="date-input"
+                />
+
+                <div class="card">
+                    <h3 class="subsection-title">選択した日の服装</h3>
+                    <div id="selected-date-outfit" class="empty-state">
+                        この日は記録がありません
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="subsection-title">今日の服装を記録</h3>
+                    <div id="clothes-checklist" class="space-y-2">
+                        <p class="empty-state">服を追加してください</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ボトムナビゲーション -->
+        <div class="bottom-nav">
+            <button onclick="showTab('home')" id="home-tab" class="nav-button nav-button-active">
+                🏠
+                <span>ホーム</span>
+            </button>
+            
+            <button onclick="showTab('clothes')" id="clothes-tab" class="nav-button">
+                👔
+                <span>服管理</span>
+            </button>
+            
+            <button onclick="showTab('calendar')" id="calendar-tab" class="nav-button">
+                📅
+                <span>履歴</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 服追加モーダル -->
+    <div id="add-clothes-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="modal-title">新しい服を追加</h3>
+            <div class="form-group">
+                <input
+                    type="text"
+                    id="clothes-name"
+                    placeholder="服の名前"
+                    class="form-input"
+                />
+                <select id="clothes-category" class="form-select">
+                    <option value="tops">トップス</option>
+                    <option value="bottoms">ボトムス</option>
+                    <option value="shoes">シューズ</option>
+                    <option value="accessories">アクセサリー</option>
+                </select>
+                <input
+                    type="text"
+                    id="clothes-color"
+                    placeholder="色"
+                    class="form-input"
+                />
+                <div class="image-upload">
+                    <label class="image-label">写真を追加（任意）</label>
+                    <input
+                        type="file"
+                        id="clothes-image"
+                        accept="image/*"
+                        class="file-input"
+                    />
+                    <canvas id="image-preview" class="image-preview hidden" width="200" height="200"></canvas>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="hideAddClothes()" class="button-secondary">
+                    キャンセル
+                </button>
+                <button onclick="addClothes()" class="button-primary">
+                    追加
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
