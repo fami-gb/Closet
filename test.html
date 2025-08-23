@@ -617,7 +617,6 @@
                 <li class="nav-item" data-page="calendar">🗓️ カレンダー</li>
                 <li class="nav-item" data-page="closet">👕 服の管理</li>
                 <li class="nav-item" data-page="weather">🌦️ 全国の天気</li>
-                <li class="nav-item" data-page="ai-assistant">🤖 AIアシスタント</li>
             </ul>
         </nav>
     </div>
@@ -663,42 +662,6 @@
             <h2>全国の天気</h2>
             <div class="weather-grid" id="weather-grid">
                 <div class="loading-message">天気情報を読み込み中...</div>
-            </div>
-        </div>
-
-        <div id="ai-assistant" class="page">
-            <h2>AIアシスタント</h2>
-            <div class="ai-chat-container">
-                <div class="ai-chat-messages" id="ai-chat-messages">
-                    <div class="ai-message">
-                        <div class="ai-avatar">🤖</div>
-                        <div class="ai-message-content">
-                            <p>こんにちは！私はあなたのファッションアシスタントです。</p>
-                            <p>コーディネートの相談、天気に合わせた服装のアドバイス、ファッショントレンドについて何でもお聞きください！</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="ai-input-container">
-                    <textarea 
-                        id="ai-input" 
-                        class="ai-input" 
-                        placeholder="AIに質問を入力してください..."
-                        rows="3"
-                    ></textarea>
-                    <button id="ai-send-btn" class="ai-send-btn">
-                        <span id="send-icon">送信</span>
-                        <span id="loading-icon" class="hidden">⏳</span>
-                    </button>
-                </div>
-                <div class="ai-suggestions">
-                    <h4>質問例:</h4>
-                    <div class="suggestion-buttons">
-                        <button class="suggestion-btn" data-question="今日の天気に合うコーディネートを教えて">今日のコーディネート</button>
-                        <button class="suggestion-btn" data-question="春のトレンドカラーは何ですか？">春のトレンド</button>
-                        <button class="suggestion-btn" data-question="デートにおすすめの服装は？">デート服</button>
-                        <button class="suggestion-btn" data-question="ビジネスカジュアルのポイントを教えて">ビジネスカジュアル</button>
-                    </div>
-                </div>
             </div>
         </div>
 
