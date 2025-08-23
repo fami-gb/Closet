@@ -246,6 +246,40 @@
             transform: scale(1.1);
         }
 
+        /* --- Gemini AIチャット --- */
+        .ai-message, .user-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        .ai-message {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--primary-color);
+        }
+        .user-message {
+            background-color: #f0f0f0;
+            border-left: 4px solid var(--secondary-color);
+            text-align: right;
+        }
+        .quick-question {
+            padding: 8px 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .quick-question:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
     </style>
 </head>
 <body>
@@ -258,6 +292,7 @@
                 <li class="nav-item" data-page="calendar">🗓️ カレンダー</li>
                 <li class="nav-item" data-page="closet">👕 服の管理</li>
                 <li class="nav-item" data-page="weather">🌦️ 全国の天気</li>
+                <li class="nav-item" data-page="gemini">🤖 AI アシスタント</li>
             </ul>
         </nav>
     </div>
@@ -305,6 +340,59 @@
             
         </div>
 
+        <div id="gemini" class="page">
+            <h2>🤖 AI ファッションアシスタント (Gemini)</h2>
+            
+            <!-- APIキー設定カード -->
+            <div class="card" id="api-setup-card">
+                <h3>📝 Gemini API設定</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="password" id="gemini-api-key" placeholder="Gemini APIキーを入力してください..." 
+                           style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    <button id="save-api-key" style="padding: 10px 20px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        保存
+                    </button>
+                </div>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                    💡 <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI StudioでAPIキーを取得</a>
+                </p>
+            </div>
+
+            <!-- チャット画面 -->
+            <div class="card" id="chat-container" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>💬 AIチャット</h3>
+                    <button id="reset-api-key" style="padding: 8px 15px; background-color: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                        🔑 APIキー初期化
+                    </button>
+                </div>
+                <div id="chat-messages" style="height: 400px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 8px; background-color: #fafafa; margin-bottom: 15px;">
+                    <div class="ai-message">
+                        <strong>🤖 Gemini:</strong> こんにちは！私はあなたのファッションアシスタントです。今日のコーデについて何でも聞いてくださいね！✨
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="user-input" placeholder="ファッションについて質問してください..." 
+                           style="flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
+                    <button id="send-message" style="padding: 12px 20px; background-color: var(--secondary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        送信
+                    </button>
+                </div>
+                
+                <!-- クイック質問ボタン -->
+                <div style="margin-top: 15px;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">クイック質問:</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <button class="quick-question" data-question="今日の気温25度に適したコーデを教えて">25度のコーデ</button>
+                        <button class="quick-question" data-question="デートにおすすめのファッションを教えて">デートコーデ</button>
+                        <button class="quick-question" data-question="カジュアルで動きやすい服装を提案して">カジュアル</button>
+                        <button class="quick-question" data-question="今のトレンドファッションを教えて">トレンド</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <button id="fab" class="fab">+</button>
@@ -346,7 +434,19 @@
             const itemGallery = document.getElementById('item-gallery');
             const modalTitle = document.getElementById('modal-title');
             
+            // Gemini関連の要素
+            const geminiApiKeyInput = document.getElementById('gemini-api-key');
+            const saveApiKeyBtn = document.getElementById('save-api-key');
+            const resetApiKeyBtn = document.getElementById('reset-api-key');
+            const apiSetupCard = document.getElementById('api-setup-card');
+            const chatContainer = document.getElementById('chat-container');
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendMessageBtn = document.getElementById('send-message');
+            const quickQuestions = document.querySelectorAll('.quick-question');
+            
             let editingItemId = null; // 編集中のアイテムIDを保持
+            let geminiApiKey = localStorage.getItem('gemini-api-key') || '';
 
             // --- サンプルデータ ---
             const initialItems = [
@@ -490,6 +590,153 @@
 
             // --- 初期化 ---
             renderCloset();
+            initializeGemini();
+
+            // --- Gemini API関連の初期化 ---
+            function initializeGemini() {
+                if (geminiApiKey) {
+                    geminiApiKeyInput.value = '●'.repeat(20); // マスク表示
+                    apiSetupCard.style.display = 'none';
+                    chatContainer.style.display = 'block';
+                } else {
+                    apiSetupCard.style.display = 'block';
+                    chatContainer.style.display = 'none';
+                }
+            }
+
+            // --- APIキー保存 ---
+            saveApiKeyBtn.addEventListener('click', () => {
+                const apiKey = geminiApiKeyInput.value.trim();
+                if (apiKey) {
+                    geminiApiKey = apiKey;
+                    localStorage.setItem('gemini-api-key', apiKey);
+                    apiSetupCard.style.display = 'none';
+                    chatContainer.style.display = 'block';
+                    alert('APIキーが保存されました！');
+                } else {
+                    alert('APIキーを入力してください。');
+                }
+            });
+
+            // --- APIキー初期化 ---
+            resetApiKeyBtn.addEventListener('click', () => {
+                if (confirm('本当にAPIキーを初期化しますか？\nチャット履歴も削除されます。')) {
+                    // localStorageからAPIキーを削除
+                    localStorage.removeItem('gemini-api-key');
+                    geminiApiKey = '';
+                    
+                    // チャット履歴をクリア
+                    chatMessages.innerHTML = `
+                        <div class="ai-message">
+                            <strong>🤖 Gemini:</strong> こんにちは！私はあなたのファッションアシスタントです。今日のコーデについて何でも聞いてくださいね！✨
+                        </div>
+                    `;
+                    
+                    // 入力フィールドをクリア
+                    geminiApiKeyInput.value = '';
+                    userInput.value = '';
+                    
+                    // 画面を切り替え
+                    chatContainer.style.display = 'none';
+                    apiSetupCard.style.display = 'block';
+                    
+                    alert('APIキーが初期化されました！');
+                }
+            });
+
+            // --- メッセージ送信 ---
+            async function sendMessage(message) {
+                if (!message.trim()) return;
+
+                // ユーザーメッセージを表示
+                addMessage(message, 'user');
+                userInput.value = '';
+
+                // ローディング表示
+                const loadingDiv = addMessage('考え中...', 'ai', true);
+
+                try {
+                    const response = await callGeminiAPI(message);
+                    // ローディングを削除
+                    chatMessages.removeChild(loadingDiv);
+                    // AI応答を表示
+                    addMessage(response, 'ai');
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    chatMessages.removeChild(loadingDiv);
+                    addMessage('申し訳ございません。エラーが発生しました。APIキーを確認してください。', 'ai');
+                }
+            }
+
+            // --- メッセージをチャットに追加 ---
+            function addMessage(text, sender, isLoading = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = sender === 'user' ? 'user-message' : 'ai-message';
+                if (isLoading) messageDiv.classList.add('loading');
+                
+                const prefix = sender === 'user' ? '👤 あなた: ' : '🤖 Gemini: ';
+                messageDiv.innerHTML = `<strong>${prefix}</strong>${text}`;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                return messageDiv;
+            }
+
+            // --- Gemini APIを呼び出し ---
+            async function callGeminiAPI(message) {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyChqHJ3Wqh3qsjcSXMzK_OHe79BG7P_9_0`;
+                
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `あなたはファッション専門のAIアシスタントです。ユーザーの質問に対して、親しみやすく具体的なアドバイスを日本語で提供してください。
+
+質問: ${message}`
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 1024,
+                    }
+                };
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            }
+
+            // --- イベントリスナー ---
+            sendMessageBtn.addEventListener('click', () => {
+                sendMessage(userInput.value);
+            });
+
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage(userInput.value);
+                }
+            });
+
+            quickQuestions.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const question = btn.dataset.question;
+                    userInput.value = question;
+                    sendMessage(question);
+                });
+            });
         });
     </script>
 </body>
