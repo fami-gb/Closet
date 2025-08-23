@@ -879,7 +879,7 @@
             }
 
             // --- AIアシスタント機能 ---
-            const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // ここにGemini APIキーを入力
+            const GEMINI_API_KEY = 'AIzaSyBANFF2gO72-jZG6yVmCy4GuFpL0BvuGXI'; // ここにGemini APIキーを入力
             const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
             let chatHistory = [];
@@ -934,7 +934,7 @@
                     console.error('AI API Error:', error);
                     let errorMessage = 'すみません、現在AIサービスに接続できません。';
                     
-                    if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+                    if (GEMINI_API_KEY === 'AIzaSyBANFF2gO72-jZG6yVmCy4GuFpL0BvuGXI') {
                         errorMessage = `申し訳ありませんが、Gemini APIキーが設定されていません。
                         開発者向け: GEMINI_API_KEY変数に有効なAPIキーを設定してください。`;
                     }
