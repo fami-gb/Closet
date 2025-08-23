@@ -261,6 +261,141 @@
             grid-column: 1 / -1;
         }
 
+        /* --- AIアシスタント --- */
+        .ai-chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .ai-chat-messages {
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .ai-message, .user-message {
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+        .user-message {
+            flex-direction: row-reverse;
+        }
+        .ai-avatar, .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .ai-avatar {
+            background: var(--primary-color);
+            color: white;
+        }
+        .user-avatar {
+            background: var(--secondary-color);
+            color: white;
+        }
+        .ai-message-content, .user-message-content {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 70%;
+        }
+        .user-message-content {
+            background: var(--primary-color);
+            color: white;
+        }
+        .ai-message-content p, .user-message-content p {
+            margin: 0 0 8px 0;
+        }
+        .ai-message-content p:last-child, .user-message-content p:last-child {
+            margin-bottom: 0;
+        }
+        .ai-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .ai-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 50px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .ai-send-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
+        }
+        .ai-send-btn:hover {
+            background: var(--secondary-color);
+        }
+        .ai-send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .ai-suggestions {
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        .ai-suggestions h4 {
+            margin: 0 0 15px 0;
+            color: var(--primary-color);
+        }
+        .suggestion-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .suggestion-btn {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .suggestion-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .hidden {
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* --- 服の管理ページ --- */
         .item-gallery {
             display: grid;
@@ -421,6 +556,15 @@
                 grid-template-columns: 1fr;
                 gap: 8px;
             }
+            .ai-message-content, .user-message-content {
+                max-width: 85%;
+            }
+            .suggestion-buttons {
+                flex-direction: column;
+            }
+            .suggestion-btn {
+                text-align: left;
+            }
         }
 
         @media (min-width: 769px) {
@@ -441,6 +585,13 @@
             }
             .weather-icon-large {
                 font-size: 36px;
+            }
+            .ai-input-container {
+                flex-direction: column;
+            }
+            .ai-send-btn {
+                align-self: flex-end;
+                min-width: 80px;
             }
         }
 
@@ -466,6 +617,7 @@
                 <li class="nav-item" data-page="calendar">🗓️ カレンダー</li>
                 <li class="nav-item" data-page="closet">👕 服の管理</li>
                 <li class="nav-item" data-page="weather">🌦️ 全国の天気</li>
+                <li class="nav-item" data-page="ai-assistant">🤖 AIアシスタント</li>
             </ul>
         </nav>
     </div>
@@ -511,6 +663,42 @@
             <h2>全国の天気</h2>
             <div class="weather-grid" id="weather-grid">
                 <div class="loading-message">天気情報を読み込み中...</div>
+            </div>
+        </div>
+
+        <div id="ai-assistant" class="page">
+            <h2>AIアシスタント</h2>
+            <div class="ai-chat-container">
+                <div class="ai-chat-messages" id="ai-chat-messages">
+                    <div class="ai-message">
+                        <div class="ai-avatar">🤖</div>
+                        <div class="ai-message-content">
+                            <p>こんにちは！私はあなたのファッションアシスタントです。</p>
+                            <p>コーディネートの相談、天気に合わせた服装のアドバイス、ファッショントレンドについて何でもお聞きください！</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-input-container">
+                    <textarea 
+                        id="ai-input" 
+                        class="ai-input" 
+                        placeholder="AIに質問を入力してください..."
+                        rows="3"
+                    ></textarea>
+                    <button id="ai-send-btn" class="ai-send-btn">
+                        <span id="send-icon">送信</span>
+                        <span id="loading-icon" class="hidden">⏳</span>
+                    </button>
+                </div>
+                <div class="ai-suggestions">
+                    <h4>質問例:</h4>
+                    <div class="suggestion-buttons">
+                        <button class="suggestion-btn" data-question="今日の天気に合うコーディネートを教えて">今日のコーディネート</button>
+                        <button class="suggestion-btn" data-question="春のトレンドカラーは何ですか？">春のトレンド</button>
+                        <button class="suggestion-btn" data-question="デートにおすすめの服装は？">デート服</button>
+                        <button class="suggestion-btn" data-question="ビジネスカジュアルのポイントを教えて">ビジネスカジュアル</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -690,6 +878,148 @@
                 weatherGrid.innerHTML = weatherCards;
             }
 
+            // --- AIアシスタント機能 ---
+            const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // ここにGemini APIキーを入力
+            const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+
+            let chatHistory = [];
+
+            // AIに質問を送信
+            async function sendToAI(question) {
+                const aiInput = document.getElementById('ai-input');
+                const sendBtn = document.getElementById('ai-send-btn');
+                const sendIcon = document.getElementById('send-icon');
+                const loadingIcon = document.getElementById('loading-icon');
+                const messagesContainer = document.getElementById('ai-chat-messages');
+
+                // ユーザーメッセージを表示
+                addMessageToChat('user', question);
+                
+                // 入力をクリアしてボタンを無効化
+                aiInput.value = '';
+                sendBtn.disabled = true;
+                sendIcon.classList.add('hidden');
+                loadingIcon.classList.remove('hidden');
+
+                try {
+                    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `あなたはファッションアドバイザーのAIアシスタントです。
+                                    ユーザーからの質問に対して、親しみやすく、実用的なファッションアドバイスを提供してください。
+                                    コーディネートの提案、季節に合った服装、色の組み合わせ、トレンド情報などについて詳しく回答してください。
+                                    
+                                    質問: ${question}`
+                                }]
+                            }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const aiResponse = data.candidates[0]?.content?.parts[0]?.text || 'すみません、回答を生成できませんでした。';
+                    
+                    // AIの回答を表示
+                    addMessageToChat('ai', aiResponse);
+                    
+                } catch (error) {
+                    console.error('AI API Error:', error);
+                    let errorMessage = 'すみません、現在AIサービスに接続できません。';
+                    
+                    if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+                        errorMessage = `申し訳ありませんが、Gemini APIキーが設定されていません。
+                        開発者向け: GEMINI_API_KEY変数に有効なAPIキーを設定してください。`;
+                    }
+                    
+                    addMessageToChat('ai', errorMessage);
+                } finally {
+                    // ボタンを再有効化
+                    sendBtn.disabled = false;
+                    sendIcon.classList.remove('hidden');
+                    loadingIcon.classList.add('hidden');
+                }
+            }
+
+            // チャットにメッセージを追加
+            function addMessageToChat(sender, message) {
+                const messagesContainer = document.getElementById('ai-chat-messages');
+                const messageDiv = document.createElement('div');
+                
+                if (sender === 'user') {
+                    messageDiv.className = 'user-message';
+                    messageDiv.innerHTML = `
+                        <div class="user-avatar">👤</div>
+                        <div class="user-message-content">
+                            <p>${message}</p>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.className = 'ai-message';
+                    // マークダウン風のテキストを簡単にフォーマット
+                    const formattedMessage = formatAIResponse(message);
+                    messageDiv.innerHTML = `
+                        <div class="ai-avatar">🤖</div>
+                        <div class="ai-message-content">
+                            ${formattedMessage}
+                        </div>
+                    `;
+                }
+                
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // AI回答をフォーマット
+            function formatAIResponse(text) {
+                return text
+                    .split('\n\n')
+                    .map(paragraph => `<p>${paragraph.trim()}</p>`)
+                    .join('');
+            }
+
+            // AIアシスタントの初期化
+            function initializeAIAssistant() {
+                const aiInput = document.getElementById('ai-input');
+                const sendBtn = document.getElementById('ai-send-btn');
+                const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+
+                // 送信ボタンのクリックイベント
+                sendBtn.addEventListener('click', () => {
+                    const question = aiInput.value.trim();
+                    if (question) {
+                        sendToAI(question);
+                    }
+                });
+
+                // Enterキーで送信（Shift+Enterで改行）
+                aiInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        const question = aiInput.value.trim();
+                        if (question) {
+                            sendToAI(question);
+                        }
+                    }
+                });
+
+                // 質問例ボタンのクリックイベント
+                suggestionBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const question = btn.dataset.question;
+                        aiInput.value = question;
+                        sendToAI(question);
+                    });
+                });
+            }
+
             // --- サイドバーの表示/非表示切り替え ---
             function toggleSidebar() {
                 const isOpen = sidebar.classList.contains('open');
@@ -734,6 +1064,12 @@
                     // 天気ページが選択された場合、天気データを取得
                     if (targetPageId === 'weather') {
                         fetchNationalWeather();
+                    }
+
+                    // AIアシスタントページが選択された場合、初期化
+                    if (targetPageId === 'ai-assistant') {
+                        // AIアシスタントは既に初期化されているので特別な処理は不要
+                        document.getElementById('ai-input').focus();
                     }
 
                     // モバイルサイズでサイドバーを閉じる
@@ -885,6 +1221,7 @@
 
             // --- 初期化 ---
             renderCloset();
+            initializeAIAssistant(); // AIアシスタントを初期化
         });
     </script>
 </body>
