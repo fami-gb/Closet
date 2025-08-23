@@ -414,24 +414,25 @@
 
     <div id="addItemModal" class="modal">
         <div class="modal-content">
-                <h2 id="modal-title">服を新しく登録</h2>
-                <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
-                <div id="imagePreview" class="image-preview">
-                    クリックして画像を選択
-                </div>
-                <input type="text" id="itemName" placeholder="アイテム名 (例: 白いTシャツ)">
-                <select id="itemCategory">
-                    <option value="tops">トップス</option>
-                    <option value="bottoms">ボトムス</option>
-                    <option value="outerwear">アウター</option>
-                    <option value="shoes">シューズ</option>
-                    <option value="accessory">アクセサリー</option>
-                </select>
+            <h2 id="modal-title">服を新しく登録</h2>
+            <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
+            <div id="imagePreview" class="image-preview">
+                クリックして画像を選択
+            </div>
+            <input type="text" id="itemName" placeholder="アイテム名 (例: 白いTシャツ)">
+            <input type="date" id="itemDate" style="margin-bottom:15px;">
+            <select id="itemCategory">
+                <option value="tops">トップス</option>
+                <option value="bottoms">ボトムス</option>
+                <option value="outerwear">アウター</option>
+                <option value="shoes">シューズ</option>
+                <option value="accessory">アクセサリー</option>
+            </select>
                 <input type="date" id="itemDate" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;" placeholder="登録日">
-                <div class="modal-actions">
-                    <button id="cancel-btn" class="cancel-btn">キャンセル</button>
-                    <button id="save-btn" class="save-btn">保存</button>
-                </div>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="cancel-btn">キャンセル</button>
+                <button id="save-btn" class="save-btn">保存</button>
+            </div>
         </div>
     </div>
 
@@ -521,16 +522,16 @@
                 if (mode === 'edit' && item) {
                     modalTitle.textContent = '服を編集';
                     document.getElementById('itemName').value = item.name;
+                    document.getElementById('itemDate').value = item.date || '';
                     document.getElementById('itemCategory').value = item.category;
                     imagePreview.innerHTML = `<img src="${item.image}" alt="Preview">`;
-                        document.getElementById('itemDate').value = item.date || '';
                     editingItemId = item.id;
                 } else {
                     modalTitle.textContent = '服を新しく登録';
                     document.getElementById('itemName').value = '';
+                    document.getElementById('itemDate').value = '';
                     document.getElementById('itemCategory').value = 'tops';
                     imagePreview.innerHTML = 'クリックして画像を選択';
-                        document.getElementById('itemDate').value = '';
                     editingItemId = null;
                 }
             }
@@ -560,36 +561,36 @@
             
             // --- 服の保存/更新処理 ---
             saveBtn.addEventListener('click', () => {
-                    const name = document.getElementById('itemName').value;
-                    const category = document.getElementById('itemCategory').value;
-                    const imageSrc = imagePreview.querySelector('img')?.src || 'https://via.placeholder.com/150/cccccc/000000?Text=No+Image';
-                    const date = document.getElementById('itemDate').value;
+                const name = document.getElementById('itemName').value;
+                const date = document.getElementById('itemDate').value;
+                const category = document.getElementById('itemCategory').value;
+                const imageSrc = imagePreview.querySelector('img')?.src || 'https://via.placeholder.com/150/cccccc/000000?Text=No+Image';
 
-                    if (!name) {
-                        alert('アイテム名を入力してください。');
-                        return;
+                if (!name) {
+                    alert('アイテム名を入力してください。');
+                    return;
+                }
+
+                if (editingItemId) {
+                    // 更新処理
+                    const itemIndex = clothingItems.findIndex(item => item.id === editingItemId);
+                    if (itemIndex > -1) {
+                        clothingItems[itemIndex] = { ...clothingItems[itemIndex], name, date, category, image: imageSrc };
                     }
+                } else {
+                    // 新規追加処理
+                    const newItem = {
+                        id: Date.now(), // ユニークなIDを生成
+                        name: name,
+                        date: date,
+                        category: category,
+                        image: imageSrc
+                    };
+                    clothingItems.push(newItem);
+                }
 
-                    if (editingItemId) {
-                        // 更新処理
-                        const itemIndex = clothingItems.findIndex(item => item.id === editingItemId);
-                        if (itemIndex > -1) {
-                            clothingItems[itemIndex] = { ...clothingItems[itemIndex], name, category, image: imageSrc, date };
-                        }
-                    } else {
-                        // 新規追加処理
-                        const newItem = {
-                            id: Date.now(), // ユニークなIDを生成
-                            name: name,
-                            category: category,
-                            image: imageSrc,
-                            date: date
-                        };
-                        clothingItems.push(newItem);
-                    }
-
-                    renderCloset();
-                    closeModal();
+                renderCloset();
+                closeModal();
             });
 
             // --- 服の編集/削除 ---
