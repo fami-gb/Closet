@@ -685,7 +685,7 @@
 
             // --- Gemini APIを呼び出し ---
             async function callGeminiAPI(message) {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
 
                 const payload = {
                     contents: [{
@@ -694,19 +694,14 @@
 
 質問: ${message}`
                         }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 1024,
-                    }
+                    }]
                 };
 
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-goog-api-key': geminiApiKey
                     },
                     body: JSON.stringify(payload)
                 });
