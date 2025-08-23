@@ -830,7 +830,22 @@
 
         <div id="calendar" class="page">
             <h2>カレンダー</h2>
-            <p>ここにカレンダーが表示され、クリックした日にコーディネートを登録できます。（UIデモ）</p>
+            <p></p>
+                <div class="card" style="max-width:400px; margin:auto;">
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:10px;">
+                        <select id="calendar-year" style="padding:6px; border-radius:6px; border:1px solid #ccc;"></select>
+                        <select id="calendar-month" style="padding:6px; border-radius:6px; border:1px solid #ccc;"></select>
+                    </div>
+                    <h3 id="calendar-title" style="text-align:center;"></h3>
+                    <table id="simple-calendar" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f4f4f9;">
+                                <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             
         </div>
 
@@ -934,6 +949,7 @@
                 クリックして画像を選択
             </div>
             <input type="text" id="itemName" placeholder="アイテム名 (例: 白いTシャツ)">
+            <input type="date" id="itemDate" style="margin-bottom:15px;">
             <select id="itemCategory">
                 <option value="tops">トップス</option>
                 <option value="bottoms">ボトムス</option>
@@ -941,6 +957,7 @@
                 <option value="shoes">シューズ</option>
                 <option value="accessory">アクセサリー</option>
             </select>
+            
             <div class="modal-actions">
                 <button id="cancel-btn" class="cancel-btn">キャンセル</button>
                 <button id="save-btn" class="save-btn">保存</button>
@@ -986,6 +1003,11 @@
             const saveBtn = document.getElementById('save-btn');
             const itemGallery = document.getElementById('item-gallery');
             const modalTitle = document.getElementById('modal-title');
+                // カレンダーUI要素
+                const calendarTitle = document.getElementById('calendar-title');
+                const calendarTable = document.getElementById('simple-calendar');
+                const calendarYear = document.getElementById('calendar-year');
+                const calendarMonth = document.getElementById('calendar-month');
             
             // サイドバー関連の要素
             const menuToggle = document.getElementById('menu-toggle');
@@ -1560,12 +1582,14 @@
                 if (mode === 'edit' && item) {
                     modalTitle.textContent = '服を編集';
                     document.getElementById('itemName').value = item.name;
+                    document.getElementById('itemDate').value = item.date || '';
                     document.getElementById('itemCategory').value = item.category;
                     imagePreview.innerHTML = `<img src="${item.image}" alt="Preview">`;
                     editingItemId = item.id;
                 } else {
                     modalTitle.textContent = '服を新しく登録';
                     document.getElementById('itemName').value = '';
+                    document.getElementById('itemDate').value = '';
                     document.getElementById('itemCategory').value = 'tops';
                     imagePreview.innerHTML = 'クリックして画像を選択';
                     editingItemId = null;
@@ -1598,6 +1622,7 @@
             // --- 服の保存/更新処理 ---
             saveBtn.addEventListener('click', () => {
                 const name = document.getElementById('itemName').value;
+                const date = document.getElementById('itemDate').value;
                 const category = document.getElementById('itemCategory').value;
                 const imageSrc = imagePreview.querySelector('img')?.src || 'https://via.placeholder.com/150/cccccc/000000?Text=No+Image';
 
@@ -1610,13 +1635,14 @@
                     // 更新処理
                     const itemIndex = clothingItems.findIndex(item => item.id === editingItemId);
                     if (itemIndex > -1) {
-                        clothingItems[itemIndex] = { ...clothingItems[itemIndex], name, category, image: imageSrc };
+                        clothingItems[itemIndex] = { ...clothingItems[itemIndex], name, date, category, image: imageSrc };
                     }
                 } else {
                     // 新規追加処理
                     const newItem = {
                         id: Date.now(), // ユニークなIDを生成
                         name: name,
+                        date: date,
                         category: category,
                         image: imageSrc
                     };
@@ -1681,6 +1707,74 @@
             // 10分ごとに天気を更新
             setInterval(updateSidebarWeather, 10 * 60 * 1000);
             initializeGemini();
+                // --- 年・月セレクト初期化 ---
+                function initCalendarSelects() {
+                    const now = new Date();
+                    const thisYear = now.getFullYear();
+                    // 年は±5年分
+                    for(let y=thisYear-5; y<=thisYear+5; y++){
+                        const opt = document.createElement('option');
+                        opt.value = y;
+                        opt.textContent = y + '年';
+                        calendarYear.appendChild(opt);
+                    }
+                    // 月
+                    for(let m=1; m<=12; m++){
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m + '月';
+                        calendarMonth.appendChild(opt);
+                    }
+                    // 初期値
+                    calendarYear.value = thisYear;
+                    calendarMonth.value = now.getMonth()+1;
+                }
+
+                // --- カレンダーUI生成 ---
+                function renderCalendar(year, month) {
+                    calendarTitle.textContent = `${year}年${month}月`;
+                    const firstDay = new Date(year, month-1, 1);
+                    const lastDay = new Date(year, month, 0);
+                    const startDay = firstDay.getDay();
+                    const daysInMonth = lastDay.getDate();
+                    let html = '';
+                    let day = 1;
+                    for(let i=0; i<6; i++){
+                        html += '<tr>';
+                        for(let j=0; j<7; j++){
+                            if(i===0 && j<startDay){
+                                html += '<td></td>';
+                            }else if(day > daysInMonth){
+                                html += '<td></td>';
+                            }else{
+                                html += `<td style="padding:8px; text-align:center; cursor:pointer; border:1px solid #eee;" data-date="${year}-${month}-${day}">${day}</td>`;
+                                day++;
+                            }
+                        }
+                        html += '</tr>';
+                    }
+                    calendarTable.querySelector('tbody').innerHTML = html;
+                }
+
+                // --- 日付クリックイベント ---
+                calendarTable.addEventListener('click', (e) => {
+                    const td = e.target.closest('td[data-date]');
+                    if(td){
+                        alert(td.dataset.date + ' を選択しました');
+                    }
+                });
+
+                // --- 年・月選択イベント ---
+                calendarYear.addEventListener('change', () => {
+                    renderCalendar(Number(calendarYear.value), Number(calendarMonth.value));
+                });
+                calendarMonth.addEventListener('change', () => {
+                    renderCalendar(Number(calendarYear.value), Number(calendarMonth.value));
+                });
+
+                // --- 初期表示 ---
+                initCalendarSelects();
+                renderCalendar(Number(calendarYear.value), Number(calendarMonth.value));
 
             // --- Gemini API関連の初期化 ---
             function initializeGemini() {
