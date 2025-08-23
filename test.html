@@ -507,6 +507,88 @@
             line-height: 0;
         }
 
+        /* --- カテゴリーフィルター --- */
+        .category-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .filter-btn {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .filter-btn:hover {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* --- 並び順オプション --- */
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .sort-options label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        #sort-select {
+            padding: 6px 12px;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #sort-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* --- カテゴリー別表示の改善 --- */
+        .clothing-item {
+            transition: transform 0.2s ease, opacity 0.3s ease;
+        }
+        .clothing-item.hidden {
+            display: none;
+        }
+        .clothing-item:hover {
+            transform: translateY(-2px);
+        }
+        .category-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            z-index: 1;
+        }
+
         /* --- 服の登録モーダル --- */
         .modal {
             display: none;
@@ -643,6 +725,19 @@
                 padding: 10px 6px;
                 font-size: 12px;
             }
+            .category-filter {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .filter-btn {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            .sort-options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
         }
 
         @media (min-width: 769px) {
@@ -741,8 +836,30 @@
 
         <div id="closet" class="page">
             <h2>服の管理</h2>
+            
+            <!-- カテゴリーフィルター -->
+            <div class="category-filter">
+                <button class="filter-btn active" data-category="all">全て</button>
+                <button class="filter-btn" data-category="tops">👕 トップス</button>
+                <button class="filter-btn" data-category="bottoms">👖 ボトムス</button>
+                <button class="filter-btn" data-category="outerwear">🧥 アウター</button>
+                <button class="filter-btn" data-category="shoes">👟 シューズ</button>
+                <button class="filter-btn" data-category="accessory">💍 アクセサリー</button>
+            </div>
+            
+            <!-- 並び順オプション -->
+            <div class="sort-options">
+                <label for="sort-select">並び順:</label>
+                <select id="sort-select">
+                    <option value="newest">新しい順</option>
+                    <option value="oldest">古い順</option>
+                    <option value="name">名前順</option>
+                    <option value="category">カテゴリー順</option>
+                </select>
+            </div>
+            
             <div id="item-gallery" class="item-gallery">
-                </div>
+            </div>
         </div>
 
         <div id="weather" class="page">
@@ -1287,15 +1404,62 @@
                 { id: 3, name: '黒いジャケット', category: 'outerwear', image: 'https://via.placeholder.com/150/000000/FFFFFF?Text=Jacket' }
             ];
             let clothingItems = [...initialItems];
+            let currentFilter = 'all';
+            let currentSort = 'newest';
 
-            // --- 服の管理: 初期表示 ---
+            // カテゴリー名を日本語に変換
+            function getCategoryName(category) {
+                const categoryNames = {
+                    'tops': 'トップス',
+                    'bottoms': 'ボトムス',
+                    'outerwear': 'アウター',
+                    'shoes': 'シューズ',
+                    'accessory': 'アクセサリー'
+                };
+                return categoryNames[category] || category;
+            }
+
+            // 服をフィルタリング・ソートして表示
             function renderCloset() {
+                // フィルタリング
+                let filteredItems = clothingItems;
+                if (currentFilter !== 'all') {
+                    filteredItems = clothingItems.filter(item => item.category === currentFilter);
+                }
+
+                // ソート
+                filteredItems = [...filteredItems].sort((a, b) => {
+                    switch (currentSort) {
+                        case 'newest':
+                            return b.id - a.id;
+                        case 'oldest':
+                            return a.id - b.id;
+                        case 'name':
+                            return a.name.localeCompare(b.name);
+                        case 'category':
+                            return a.category.localeCompare(b.category);
+                        default:
+                            return 0;
+                    }
+                });
+
+                // 表示
                 itemGallery.innerHTML = '';
-                clothingItems.forEach(item => {
+                if (filteredItems.length === 0) {
+                    itemGallery.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                            ${currentFilter === 'all' ? '服が登録されていません' : `${getCategoryName(currentFilter)}の服が見つかりません`}
+                        </div>
+                    `;
+                    return;
+                }
+
+                filteredItems.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('clothing-item');
                     itemDiv.dataset.id = item.id;
                     itemDiv.innerHTML = `
+                        <div class="category-badge">${getCategoryName(item.category)}</div>
                         <img src="${item.image}" alt="${item.name}">
                         <div class="item-name">${item.name}</div>
                         <div class="item-actions">
@@ -1418,6 +1582,29 @@
                         renderCloset();
                     }
                 }
+            });
+
+            // --- カテゴリーフィルターとソート機能 ---
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const sortSelect = document.getElementById('sort-select');
+
+            // フィルターボタンのイベント
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // アクティブ状態を更新
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // フィルターを適用
+                    currentFilter = btn.dataset.category;
+                    renderCloset();
+                });
+            });
+
+            // ソートセレクトのイベント
+            sortSelect.addEventListener('change', () => {
+                currentSort = sortSelect.value;
+                renderCloset();
             });
 
             // --- 初期化 ---
