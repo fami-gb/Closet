@@ -60,6 +60,76 @@
             background-color: var(--secondary-color);
         }
 
+        /* --- サイドバー天気表示 --- */
+        .sidebar-weather {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .weather-location {
+            font-size: 14px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        .weather-temp {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        .weather-desc {
+            font-size: 12px;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+        .weather-change-btn {
+            font-size: 11px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+        .weather-change-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* --- 地点選択モーダル --- */
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .location-btn {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .location-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .location-btn.current-location {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .location-btn.current-location:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
         /* --- メインコンテンツ --- */
         .main-content {
             margin-left: 0; /* サイドバーが非表示なので0に変更 */
@@ -565,6 +635,14 @@
             .suggestion-btn {
                 text-align: left;
             }
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .location-btn {
+                padding: 10px 6px;
+                font-size: 12px;
+            }
         }
 
         @media (min-width: 769px) {
@@ -611,6 +689,15 @@
 
     <div class="sidebar">
         <h1>ClosetUp</h1>
+        
+        <!-- 現在地の天気表示 -->
+        <div class="sidebar-weather" id="sidebar-weather">
+            <div class="weather-location" id="weather-location">📍 現在地</div>
+            <div class="weather-temp" id="weather-temp">--°C</div>
+            <div class="weather-desc" id="weather-desc">読み込み中...</div>
+            <div class="weather-change-btn" id="weather-change-btn">📍 地点変更</div>
+        </div>
+        
         <nav>
             <ul>
                 <li class="nav-item active" data-page="home">🏠 ホーム</li>
@@ -691,6 +778,30 @@
         </div>
     </div>
 
+    <!-- 地点選択モーダル -->
+    <div id="locationModal" class="modal">
+        <div class="modal-content">
+            <h2>天気表示地点を選択</h2>
+            <div class="location-grid">
+                <button class="location-btn" data-city="東京" data-lat="35.6762" data-lon="139.6503">東京</button>
+                <button class="location-btn" data-city="大阪" data-lat="34.6937" data-lon="135.5023">大阪</button>
+                <button class="location-btn" data-city="名古屋" data-lat="35.1815" data-lon="136.9066">名古屋</button>
+                <button class="location-btn" data-city="福岡" data-lat="33.5904" data-lon="130.4017">福岡</button>
+                <button class="location-btn" data-city="札幌" data-lat="43.0642" data-lon="141.3469">札幌</button>
+                <button class="location-btn" data-city="仙台" data-lat="38.2682" data-lon="140.8694">仙台</button>
+                <button class="location-btn" data-city="横浜" data-lat="35.4437" data-lon="139.6380">横浜</button>
+                <button class="location-btn" data-city="京都" data-lat="35.0116" data-lon="135.7681">京都</button>
+                <button class="location-btn" data-city="神戸" data-lat="34.6901" data-lon="135.1956">神戸</button>
+                <button class="location-btn" data-city="広島" data-lat="34.3853" data-lon="132.4553">広島</button>
+                <button class="location-btn" data-city="沖縄" data-lat="26.2124" data-lon="127.6792">沖縄</button>
+                <button class="location-btn current-location" data-city="現在地">📍 現在地を取得</button>
+            </div>
+            <div class="modal-actions">
+                <button id="location-cancel-btn" class="cancel-btn">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // JavaScript (動作)
@@ -713,6 +824,19 @@
             const mainContent = document.querySelector('.main-content');
             
             let editingItemId = null; // 編集中のアイテムIDを保持
+
+            // 選択された地点の情報を保存
+            let selectedLocation = {
+                city: '東京',
+                lat: 35.6762,
+                lon: 139.6503
+            };
+
+            // localStorageから保存された地点を読み込み
+            const savedLocation = localStorage.getItem('selected-location');
+            if (savedLocation) {
+                selectedLocation = JSON.parse(savedLocation);
+            }
 
             // --- 全国の天気データ ---
             const majorCities = [
@@ -839,6 +963,92 @@
                 }).join('');
                 
                 weatherGrid.innerHTML = weatherCards;
+            }
+
+            // --- サイドバー天気機能 ---
+            // サイドバーの天気を取得・更新
+            async function updateSidebarWeather() {
+                const apiKey = 'a5ea9ddc9b7d6e0c0d5555185743180d';
+                const locationEl = document.getElementById('weather-location');
+                const tempEl = document.getElementById('weather-temp');
+                const descEl = document.getElementById('weather-desc');
+
+                try {
+                    locationEl.textContent = `📍 ${selectedLocation.city}`;
+                    tempEl.textContent = '--°C';
+                    descEl.textContent = '読み込み中...';
+
+                    const response = await fetch(
+                        `https://api.openweathermap.org/data/2.5/weather?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&appid=${apiKey}&units=metric&lang=ja`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const temp = Math.round(data.main.temp);
+                    const description = data.weather[0].description;
+
+                    tempEl.textContent = `${temp}°C`;
+                    descEl.textContent = description;
+
+                } catch (error) {
+                    console.error('Sidebar weather error:', error);
+                    tempEl.textContent = '--°C';
+                    descEl.textContent = 'エラー';
+                }
+            }
+
+            // 地点選択モーダルの制御
+            function openLocationModal() {
+                const locationModal = document.getElementById('locationModal');
+                locationModal.style.display = 'flex';
+            }
+
+            function closeLocationModal() {
+                const locationModal = document.getElementById('locationModal');
+                locationModal.style.display = 'none';
+            }
+
+            // 地点を選択・保存
+            function selectLocation(city, lat, lon) {
+                selectedLocation = { city, lat, lon };
+                localStorage.setItem('selected-location', JSON.stringify(selectedLocation));
+                updateSidebarWeather();
+                closeLocationModal();
+            }
+
+            // 現在地を取得
+            function getCurrentLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            
+                            // 座標から都市名を取得（簡易版）
+                            try {
+                                const apiKey = 'a5ea9ddc9b7d6e0c0d5555185743180d';
+                                const response = await fetch(
+                                    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`
+                                );
+                                const data = await response.json();
+                                const cityName = data.name || '現在地';
+                                
+                                selectLocation(cityName, lat, lon);
+                            } catch (error) {
+                                selectLocation('現在地', lat, lon);
+                            }
+                        },
+                        (error) => {
+                            alert('位置情報の取得に失敗しました。手動で地点を選択してください。');
+                            console.error('Geolocation error:', error);
+                        }
+                    );
+                } else {
+                    alert('このブラウザは位置情報に対応していません。');
+                }
             }
 
             // --- AIアシスタント機能 ---
@@ -1007,6 +1217,34 @@
 
             // オーバーレイのクリックでサイドバーを閉じる
             sidebarOverlay.addEventListener('click', toggleSidebar);
+
+            // 天気表示地点変更ボタン
+            const weatherChangeBtn = document.getElementById('weather-change-btn');
+            const locationModal = document.getElementById('locationModal');
+            const locationCancelBtn = document.getElementById('location-cancel-btn');
+            const locationBtns = document.querySelectorAll('.location-btn');
+
+            weatherChangeBtn.addEventListener('click', openLocationModal);
+            locationCancelBtn.addEventListener('click', closeLocationModal);
+
+            // 地点選択ボタンのイベント
+            locationBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.classList.contains('current-location')) {
+                        getCurrentLocation();
+                    } else {
+                        const city = btn.dataset.city;
+                        const lat = parseFloat(btn.dataset.lat);
+                        const lon = parseFloat(btn.dataset.lon);
+                        selectLocation(city, lat, lon);
+                    }
+                });
+            });
+
+            // モーダル外クリックで閉じる
+            locationModal.addEventListener('click', (e) => {
+                if (e.target === locationModal) closeLocationModal();
+            });
 
             // サイドバーのナビゲーションアイテムクリック時にサイドバーを閉じる（モバイル対応）
             navItems.forEach(item => {
@@ -1185,6 +1423,11 @@
             // --- 初期化 ---
             renderCloset();
             initializeAIAssistant(); // AIアシスタントを初期化
+            
+            // サイドバー天気の初期化と定期更新
+            updateSidebarWeather();
+            // 10分ごとに天気を更新
+            setInterval(updateSidebarWeather, 10 * 60 * 1000);
         });
     </script>
 </body>
