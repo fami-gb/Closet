@@ -3,160 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>クローゼットアプリ</title>
+    <title>✨ガチ可愛いクローゼットアプリ✨</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app" class="container">
-        <!-- ヘッダー -->
-        <div class="header">
-            <h1>クローゼット</h1>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="menu-toggle" class="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <div class="sidebar">
+        <h1>💎My Closet💎</h1>
+        
+        <!-- 現在地の天気表示 -->
+        <div class="sidebar-weather" id="sidebar-weather">
+            <div class="weather-location" id="weather-location">📍 現在地</div>
+            <div class="weather-temp" id="weather-temp">--°C</div>
+            <div class="weather-desc" id="weather-desc">読み込み中...</div>
+            <div class="weather-change-btn" id="weather-change-btn">📍 地点変更</div>
         </div>
+        
+        <nav>
+            <ul>
+                <li class="nav-item active" data-page="home">🏠 今日のコーデ</li>
+                <li class="nav-item" data-page="calendar">🗓️ オシャレ履歴</li>
+                <li class="nav-item" data-page="closet">👕 服コレクション</li>
+                <li class="nav-item" data-page="weather">🌦️ 全国のお天気</li>
+                <li class="nav-item" data-page="gemini">🤖 ファッション相談</li>
+            </ul>
+        </nav>
+    </div>
 
-        <!-- メインコンテンツ -->
-        <div class="content" id="content">
-            <!-- ホーム画面 -->
-            <div id="home-screen" class="space-y-6">
-                <!-- 天気情報 -->
-                <div class="weather-card">
-                    <div class="weather-content">
-                        <div class="weather-info">
-                            <h2>今日の天気</h2>
-                            <p class="weather-temp" id="weather-temp">読み込み中...</p>
-                            <p class="weather-desc" id="weather-desc">-</p>
-                        </div>
-                        <div id="weather-icon" class="weather-icon weather-icon-sunny">
-                            ☀️
-                        </div>
-                    </div>
+    <div class="main-content">
+
+        <div id="home" class="page active">
+            <h2>💫今日のコーデ💫</h2>
+            <div class="card weather-widget">
+                <div>
+                    <div class="location">静岡県富士市</div>
+                    <div class="condition" id="weather-condition">晴れ</div>
                 </div>
-
-                <!-- 今日の服装 -->
-                <div class="card">
-                    <h3 class="section-title">
-                        👔 今日の服装
-                    </h3>
-                    <div id="today-outfit" class="empty-state">
-                        まだ記録されていません
-                    </div>
+                <div>
+                    <div class="temp" id="weather-temp">28<span style="font-size: 24px;">°C</span></div>
                 </div>
-
-                <!-- おすすめ -->
-                <div class="card">
-                    <h3 class="section-title">
-                        ✨ 今日のおすすめ
-                    </h3>
-                    <div id="recommendations" class="space-y-3">
-                        <p class="empty-state">服を登録してください</p>
-                    </div>
+                <div>
+                    <div>最高: 32°C</div>
+                    <div>最低: 24°C</div>
                 </div>
             </div>
+            <div class="card recommendation">
+                <h3>✨今日のおすすめコーデ✨</h3>
+                <div class="rec-image"></div>
+                <p><strong>今日の予定:</strong> 友人とのランチ</p>
+                <p>今日は日差しが強いので、涼しいリネンのシャツに、動きやすいチノパンを合わせるのがおすすめです。足元はサンダルで軽快に！</p>
+            </div>
+        </div>
 
-            <!-- 服管理画面 -->
-            <div id="clothes-screen" class="space-y-4 hidden">
-                <div class="section-header">
-                    <h2>服の管理</h2>
-                    <button onclick="showAddClothes()" class="add-button">
-                        ➕
+        <div id="calendar" class="page">
+            <h2>📅オシャレ履歴📅</h2>
+            <p></p>
+                <div class="card" style="max-width:400px; margin:auto;">
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:10px;">
+                    </div>
+                    <h3 id="calendar-title" style="text-align:center;"></h3>
+                    <table id="simple-calendar" style="width:100%; border-collapse:collapse;">
+                    </table>
+                </div>
+            
+        </div>
+
+        <div id="closet" class="page">
+            <h2>👗服コレクション👗</h2>
+            
+            <!-- カテゴリーフィルター -->
+            <div class="category-filter">
+                <button class="filter-btn active" data-category="all">💖全部見る</button>
+                <button class="filter-btn" data-category="tops">👕 トップス</button>
+                <button class="filter-btn" data-category="bottoms">👖 ボトムス</button>
+                <button class="filter-btn" data-category="outerwear">🧥 アウター</button>
+                <button class="filter-btn" data-category="shoes">👟 シューズ</button>
+                <button class="filter-btn" data-category="accessory">💍 アクセサリー</button>
+            </div>
+            
+            <!-- 並び順オプション -->
+            <div class="sort-options">
+                <label for="sort-select">✨並び順:</label>
+                <select id="sort-select">
+                    <option value="newest">新しい順</option>
+                    <option value="oldest">古い順</option>
+                    <option value="name">名前順</option>
+                    <option value="category">カテゴリー順</option>
+                </select>
+            </div>
+            
+            <div id="item-gallery" class="item-gallery">
+            </div>
+        </div>
+
+        <div id="weather" class="page">
+            <h2>🌈全国のお天気🌈</h2>
+            <div class="weather-grid" id="weather-grid">
+                <div class="loading-message">天気情報を読み込み中...</div>
+            </div>
+        </div>
+
+        <div id="gemini" class="page">
+            <h2>💕AIファッション相談💕</h2>
+            
+            <!-- APIキー設定カード -->
+            <div class="card" id="api-setup-card">
+                <h3>📝 Gemini API設定</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="password" id="gemini-api-key" placeholder="Gemini APIキーを入力してね💖" 
+                           style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    <button id="save-api-key" style="padding: 10px 20px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        💾保存
                     </button>
                 </div>
-
-                <div id="clothes-list" class="space-y-4">
-                    <p class="empty-state-large">服を追加してください</p>
-                </div>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                    💡 <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI StudioでAPIキーを取得</a>
+                </p>
             </div>
 
-            <!-- カレンダー画面 -->
-            <div id="calendar-screen" class="space-y-4 hidden">
-                <h2>着用履歴</h2>
+            <!-- チャット画面 -->
+            <div class="card" id="chat-container" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>💬 可愛く相談しよ💕</h3>
+                    <button id="reset-api-key" style="padding: 8px 15px; background-color: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                        🗑️リセット
+                    </button>
+                </div>
+                <div id="chat-messages" style="height: 400px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 8px; background-color: #fafafa; margin-bottom: 15px;">
+                    <div class="ai-message">
+                        💕こんにちは〜✨ ファッションのことなら何でも聞いてね💖
+                    </div>
+                </div>
                 
-                <input
-                    type="date"
-                    id="date-picker"
-                    onchange="updateSelectedDate()"
-                    class="date-input"
-                />
-
-                <div class="card">
-                    <h3 class="subsection-title">選択した日の服装</h3>
-                    <div id="selected-date-outfit" class="empty-state">
-                        この日は記録がありません
-                    </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="user-input" placeholder="何でも聞いて〜💕ファッションの悩みとか..." 
+                           style="flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
+                    <button id="send-message" style="padding: 12px 20px; background-color: var(--secondary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        💌送信
+                    </button>
                 </div>
-
-                <div class="card">
-                    <h3 class="subsection-title">今日の服装を記録</h3>
-                    <div id="clothes-checklist" class="space-y-2">
-                        <p class="empty-state">服を追加してください</p>
+                
+                <!-- クイック質問ボタン -->
+                <div style="margin-top: 15px;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">💭よくある質問:</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <button class="suggestion-btn" data-question="今日のコーデを提案して">💫今日のコーデ</button>
+                        <button class="suggestion-btn" data-question="デートにおすすめの服装は？">💕デートコーデ</button>
+                        <button class="suggestion-btn" data-question="今の季節のトレンドは？">✨今の流行</button>
+                        <button class="suggestion-btn" data-question="色の組み合わせのコツは？">🎨色合わせ</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ボトムナビゲーション -->
-        <div class="bottom-nav">
-            <button onclick="showTab('home')" id="home-tab" class="nav-button nav-button-active">
-                🏠
-                <span>ホーム</span>
-            </button>
-            
-            <button onclick="showTab('clothes')" id="clothes-tab" class="nav-button">
-                👔
-                <span>服管理</span>
-            </button>
-            
-            <button onclick="showTab('calendar')" id="calendar-tab" class="nav-button">
-                📅
-                <span>履歴</span>
-            </button>
-        </div>
     </div>
 
-    <!-- 服追加モーダル -->
-    <div id="add-clothes-modal" class="modal hidden">
+    <button id="fab" class="fab">+</button>
+
+    <div id="addItemModal" class="modal">
         <div class="modal-content">
-            <h3 class="modal-title">新しい服を追加</h3>
-            <div class="form-group">
-                <input
-                    type="text"
-                    id="clothes-name"
-                    placeholder="服の名前"
-                    class="form-input"
-                />
-                <select id="clothes-category" class="form-select">
-                    <option value="tops">トップス</option>
-                    <option value="bottoms">ボトムス</option>
-                    <option value="shoes">シューズ</option>
-                    <option value="accessories">アクセサリー</option>
-                </select>
-                <input
-                    type="text"
-                    id="clothes-color"
-                    placeholder="色"
-                    class="form-input"
-                />
-                <div class="image-upload">
-                    <label class="image-label">写真を追加（任意）</label>
-                    <input
-                        type="file"
-                        id="clothes-image"
-                        accept="image/*"
-                        class="file-input"
-                    />
-                    <canvas id="image-preview" class="image-preview hidden" width="200" height="200"></canvas>
-                </div>
+            <h2 id="modal-title">💖新しい服を登録💖</h2>
+            <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
+            <div id="imagePreview" class="image-preview">
+                クリックして画像を選択
             </div>
-            <div class="modal-buttons">
-                <button onclick="hideAddClothes()" class="button-secondary">
-                    キャンセル
-                </button>
-                <button onclick="addClothes()" class="button-primary">
-                    追加
-                </button>
+            <input type="text" id="itemName" placeholder="アイテム名 (例: 白いTシャツ)">
+             <input type="date" id="itemDate" style="margin-bottom:15px;">
+            <select id="itemCategory">
+                <option value="tops">トップス</option>
+                <option value="bottoms">ボトムス</option>
+                <option value="outerwear">アウター</option>
+                <option value="shoes">シューズ</option>
+                <option value="accessory">アクセサリー</option>
+            </select>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="cancel-btn">キャンセル</button>
+                <button id="save-btn" class="save-btn">💖保存</button>
             </div>
         </div>
     </div>
 
+    <!-- 地点選択モーダル -->
+    <div id="locationModal" class="modal">
+        <div class="modal-content">
+            <h2>📍天気表示地点を選択</h2>
+            <div class="location-grid">
+                <button class="location-btn" data-city="東京" data-lat="35.6762" data-lon="139.6503">東京</button>
+                <button class="location-btn" data-city="大阪" data-lat="34.6937" data-lon="135.5023">大阪</button>
+                <button class="location-btn" data-city="名古屋" data-lat="35.1815" data-lon="136.9066">名古屋</button>
+                <button class="location-btn" data-city="福岡" data-lat="33.5904" data-lon="130.4017">福岡</button>
+                <button class="location-btn" data-city="札幌" data-lat="43.0642" data-lon="141.3469">札幌</button>
+                <button class="location-btn" data-city="仙台" data-lat="38.2682" data-lon="140.8694">仙台</button>
+                <button class="location-btn" data-city="横浜" data-lat="35.4437" data-lon="139.6380">横浜</button>
+                <button class="location-btn" data-city="京都" data-lat="35.0116" data-lon="135.7681">京都</button>
+                <button class="location-btn" data-city="神戸" data-lat="34.6901" data-lon="135.1956">神戸</button>
+                <button class="location-btn" data-city="広島" data-lat="34.3853" data-lon="132.4553">広島</button>
+                <button class="location-btn" data-city="沖縄" data-lat="26.2124" data-lon="127.6792">沖縄</button>
+                <button class="location-btn current-location" data-city="現在地">📍 現在地を取得</button>
+            </div>
+            <div class="modal-actions">
+                <button id="location-cancel-btn" class="cancel-btn">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript ファイルの読み込み -->
+    <script src="weather.js"></script>
+    <script src="closet.js"></script>
+    <script src="calendar.js"></script>
+    <script src="gemini.js"></script>
     <script src="script.js"></script>
+
 </body>
 </html>

@@ -1,419 +1,165 @@
-// アプリの状態
-let currentTab = 'home';
-let clothes = JSON.parse(localStorage.getItem('closet-clothes') || '[]');
-let outfits = JSON.parse(localStorage.getItem('closet-outfits') || '{}');
-let selectedDate = new Date().toISOString().split('T')[0];
-let weatherData = null;
+// メインのJavaScript - ページナビゲーションとサイドバー制御
 
-// 天気情報を取得
-async function fetchWeather() {
-    try {
-        // 方法1: 自動位置取得
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                await getWeatherData(lat, lon);
-            }, () => {
-                // 位置情報取得失敗時は固定座標を使用
-                useFixedLocation();
-            });
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('アプリケーション初期化開始');
+
+    // --- DOM要素の取得 ---
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page');
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const mainContent = document.querySelector('.main-content');
+
+    // --- サイドバーの表示/非表示切り替え ---
+    function toggleSidebar() {
+        const isOpen = sidebar.classList.contains('open');
+        
+        if (isOpen) {
+            // サイドバーを閉じる
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            menuToggle.classList.remove('active');
+            mainContent.classList.remove('sidebar-open');
         } else {
-            useFixedLocation();
+            // サイドバーを開く
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+            menuToggle.classList.add('active');
+            mainContent.classList.add('sidebar-open');
         }
-    } catch (error) {
-        console.log('天気情報取得エラー:', error);
-        setDummyWeather();
     }
-}
 
-// 方法2: 固定座標を使用
-function useFixedLocation() {
-    const lat = 36.0; // 
-    const lon = 140.0; // 
-    getWeatherData(lat, lon);
-}
-
-// 天気データを取得
-async function getWeatherData(lat, lon) {
-    try {
-        // ここにあなたのAPIキーを入力してください
-        const apiKey = 'a5ea9ddc9b7d6e0c0d5555185743180d'; // ←ここを変更！
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
-        
-        const response = await fetch(url);
-        if (response.ok) {
-            weatherData = await response.json();
-            updateWeatherDisplay();
-        } else {
-            console.log('API応答エラー:', response.status);
-            setDummyWeather();
-        }
-    } catch (error) {
-        console.log('天気API接続エラー:', error);
-        setDummyWeather();
-    }
-}
-
-// ダミー天気データ（デモ用）
-function setDummyWeather() {
-    weatherData = {
-        main: { temp: 22 },
-        weather: [{ main: 'Clear', description: '晴れ', icon: '01d' }],
-        name: '富士市'
-    };
-    updateWeatherDisplay();
-}
-
-// 天気表示の更新
-function updateWeatherDisplay() {
-    if (weatherData) {
-        document.getElementById('weather-temp').textContent = Math.round(weatherData.main.temp) + '°C';
-        document.getElementById('weather-desc').textContent = weatherData.weather[0].description;
-        
-        // 天気アイコンの更新
-        const iconElement = document.getElementById('weather-icon');
-        const weatherMain = weatherData.weather[0].main;
-        
-        let icon = '☀️';
-        let iconClass = 'weather-icon-sunny';
-        
-        switch (weatherMain) {
-            case 'Clear':
-                icon = '☀️';
-                iconClass = 'weather-icon-sunny';
-                break;
-            case 'Clouds':
-                icon = '☁️';
-                iconClass = 'weather-icon-cloudy';
-                break;
-            case 'Rain':
-                icon = '🌧️';
-                iconClass = 'weather-icon-rainy';
-                break;
-            case 'Snow':
-                icon = '❄️';
-                iconClass = 'weather-icon-snowy';
-                break;
-            case 'Thunderstorm':
-                icon = '⛈️';
-                iconClass = 'weather-icon-cloudy';
-                break;
-            default:
-                icon = '🌤️';
-                iconClass = 'weather-icon-cloudy';
-        }
-        
-        iconElement.innerHTML = icon;
-        iconElement.className = `weather-icon ${iconClass}`;
-    }
-}
-
-// 画像をリサイズして保存
-function resizeImage(file, callback) {
-    const canvas = document.getElementById('image-preview');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = function() {
-        // キャンバスサイズを設定
-        const maxSize = 200;
-        let { width, height } = img;
-        
-        if (width > height) {
-            if (width > maxSize) {
-                height = height * (maxSize / width);
-                width = maxSize;
+    // --- ページ切り替え機能 ---
+    function switchPage(targetPageId) {
+        // アクティブページを切り替え
+        pages.forEach(page => {
+            if (page.id === targetPageId) {
+                page.classList.add('active');
+            } else {
+                page.classList.remove('active');
             }
-        } else {
-            if (height > maxSize) {
-                width = width * (maxSize / height);
-                height = maxSize;
-            }
+        });
+
+        // 特定のページでの初期化処理
+        switch (targetPageId) {
+            case 'weather':
+                console.log('天気ページを初期化');
+                if (typeof fetchNationalWeather === 'function') {
+                    fetchNationalWeather();
+                }
+                break;
+            
+            case 'calendar':
+                console.log('カレンダーページを初期化');
+                if (typeof initializeCalendar === 'function') {
+                    // 少し遅延させて確実に要素が準備されるようにする
+                    setTimeout(initializeCalendar, 100);
+                }
+                break;
+            
+            case 'closet':
+                console.log('クローゼットページを初期化');
+                if (typeof renderCloset === 'function') {
+                    renderCloset();
+                }
+                break;
+            
+            case 'gemini':
+                console.log('AIページを初期化');
+                if (typeof initializeGemini === 'function') {
+                    initializeGemini();
+                }
+                break;
         }
-        
-        canvas.width = width;
-        canvas.height = height;
-        canvas.classList.remove('hidden');
-        
-        // 画像を描画
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Base64データURLを取得
-        const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-        callback(dataURL);
-    };
-    
-    img.src = URL.createObjectURL(file);
-}
 
-// カテゴリー別のCSSクラス
-function getCategoryClass(category) {
-    const classes = {
-        tops: 'category-tops',
-        bottoms: 'category-bottoms',
-        shoes: 'category-shoes',
-        accessories: 'category-accessories'
-    };
-    return `category-tag ${classes[category] || 'category-tag'}`;
-}
+        // モバイルサイズでサイドバーを閉じる
+        if (window.innerWidth <= 768) {
+            toggleSidebar();
+        }
+    }
 
-// タブの切り替え
-function showTab(tab) {
-    // 全てのスクリーンを非表示
-    document.getElementById('home-screen').classList.add('hidden');
-    document.getElementById('clothes-screen').classList.add('hidden');
-    document.getElementById('calendar-screen').classList.add('hidden');
+    // --- イベントリスナーの設定 ---
 
-    // 選択されたスクリーンを表示
-    document.getElementById(tab + '-screen').classList.remove('hidden');
+    // ハンバーガーメニューボタンのクリックイベント
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleSidebar);
+        console.log('メニューボタンのイベントリスナーを設定しました');
+    } else {
+        console.error('メニューボタンが見つかりません');
+    }
 
-    // タブボタンのスタイル更新
-    document.querySelectorAll('.nav-button').forEach(btn => {
-        btn.classList.remove('nav-button-active');
+    // オーバーレイのクリックでサイドバーを閉じる
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+
+    // サイドバーのナビゲーションアイテムクリック
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // アクティブなスタイルを変更
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            // 表示ページを切り替え
+            const targetPageId = item.dataset.page;
+            switchPage(targetPageId);
+        });
     });
-    document.getElementById(tab + '-tab').classList.add('nav-button-active');
 
-    currentTab = tab;
+    // --- 各機能の初期化 ---
+    
+    // 天気機能の初期化
+    if (typeof initializeWeather === 'function') {
+        console.log('天気機能を初期化');
+        initializeWeather();
+    }
 
-    // タブに応じてコンテンツを更新
-    if (tab === 'home') updateHomeScreen();
-    if (tab === 'clothes') updateClothesScreen();
-    if (tab === 'calendar') updateCalendarScreen();
-}
+    // クローゼット機能の初期化
+    if (typeof initializeCloset === 'function') {
+        console.log('クローゼット機能を初期化');
+        initializeCloset();
+    }
 
-// 服追加モーダルの表示/非表示
-function showAddClothes() {
-    document.getElementById('add-clothes-modal').classList.remove('hidden');
-}
+    // Gemini機能の初期化
+    if (typeof initializeGeminiFeature === 'function') {
+        console.log('Gemini機能を初期化');
+        initializeGeminiFeature();
+    }
 
-function hideAddClothes() {
-    document.getElementById('add-clothes-modal').classList.add('hidden');
-    document.getElementById('clothes-name').value = '';
-    document.getElementById('clothes-category').value = 'tops';
-    document.getElementById('clothes-color').value = '';
-    document.getElementById('clothes-image').value = '';
-    document.getElementById('image-preview').classList.add('hidden');
-}
+    // --- 初期表示の設定 ---
+    
+    // デフォルトでホームページを表示
+    const defaultPage = 'home';
+    const defaultNavItem = document.querySelector(`[data-page="${defaultPage}"]`);
+    if (defaultNavItem) {
+        defaultNavItem.classList.add('active');
+    }
 
-// 服を追加
-function addClothes() {
-    const name = document.getElementById('clothes-name').value.trim();
-    const category = document.getElementById('clothes-category').value;
-    const color = document.getElementById('clothes-color').value.trim();
-    const imageFile = document.getElementById('clothes-image').files[0];
-
-    if (name) {
-        if (imageFile) {
-            resizeImage(imageFile, function(dataURL) {
-                const clothesItem = {
-                    id: Date.now(),
-                    name: name,
-                    category: category,
-                    color: color,
-                    image: dataURL,
-                    addedDate: new Date().toISOString()
-                };
-
-                clothes.push(clothesItem);
-                localStorage.setItem('closet-clothes', JSON.stringify(clothes));
-                hideAddClothes();
-                updateClothesScreen();
-                updateHomeScreen();
-                updateCalendarScreen();
-            });
+    pages.forEach(page => {
+        if (page.id === defaultPage) {
+            page.classList.add('active');
         } else {
-            const clothesItem = {
-                id: Date.now(),
-                name: name,
-                category: category,
-                color: color,
-                image: null,
-                addedDate: new Date().toISOString()
-            };
-
-            clothes.push(clothesItem);
-            localStorage.setItem('closet-clothes', JSON.stringify(clothes));
-            hideAddClothes();
-            updateClothesScreen();
-            updateHomeScreen();
-            updateCalendarScreen();
-        }
-    }
-}
-
-// ホーム画面の更新
-function updateHomeScreen() {
-    // 今日の服装
-    const todayOutfit = outfits[selectedDate];
-    const todayOutfitEl = document.getElementById('today-outfit');
-    
-    if (todayOutfit && todayOutfit.length > 0) {
-        todayOutfitEl.innerHTML = todayOutfit.map(clothesId => {
-            const item = clothes.find(c => c.id === clothesId);
-            if (item) {
-                return `<div class="outfit-item ${getCategoryClass(item.category).replace('category-tag ', '')}">
-                    <p class="outfit-item-name">${item.name}</p>
-                    <p class="outfit-item-category">${item.category}</p>
-                </div>`;
-            }
-            return '';
-        }).join('');
-    } else {
-        todayOutfitEl.innerHTML = '<p class="empty-state">まだ記録されていません</p>';
-    }
-
-    // おすすめ
-    const recommendations = getRecommendations();
-    const recommendationsEl = document.getElementById('recommendations');
-    
-    if (recommendations.length > 0) {
-        recommendationsEl.innerHTML = recommendations.map(item => `
-            <div class="recommend-item ${getCategoryClass(item.category).replace('category-tag ', '')}">
-                <div class="recommend-item-info">
-                    <p class="recommend-item-name">${item.name}</p>
-                    <p class="recommend-item-category">${item.category}</p>
-                </div>
-                <button onclick="wearClothes(${item.id})" class="recommend-button">
-                    着る
-                </button>
-            </div>
-        `).join('');
-    } else {
-        recommendationsEl.innerHTML = '<p class="empty-state">服を登録してください</p>';
-    }
-}
-
-// 服の管理画面の更新
-function updateClothesScreen() {
-    const clothesListEl = document.getElementById('clothes-list');
-    
-    if (clothes.length > 0) {
-        clothesListEl.innerHTML = clothes.map(item => `
-            <div class="clothes-item">
-                <div class="clothes-item-content">
-                    <div class="clothes-item-info">
-                        <h3 class="clothes-item-name">${item.name}</h3>
-                        <span class="${getCategoryClass(item.category)}">
-                            ${item.category}
-                        </span>
-                        ${item.color ? `<p class="clothes-item-color">色: ${item.color}</p>` : ''}
-                    </div>
-                    ${item.image ? `
-                        <div class="clothes-item-image">
-                            <img src="${item.image}" alt="${item.name}">
-                        </div>
-                    ` : `
-                        <div class="clothes-item-placeholder">
-                            📷
-                        </div>
-                    `}
-                </div>
-            </div>
-        `).join('');
-    } else {
-        clothesListEl.innerHTML = '<p class="empty-state-large">服を追加してください</p>';
-    }
-}
-
-// カレンダー画面の更新
-function updateCalendarScreen() {
-    document.getElementById('date-picker').value = selectedDate;
-    
-    // 選択した日の服装
-    const selectedDateOutfit = outfits[selectedDate];
-    const selectedDateOutfitEl = document.getElementById('selected-date-outfit');
-    
-    if (selectedDateOutfit && selectedDateOutfit.length > 0) {
-        selectedDateOutfitEl.innerHTML = selectedDateOutfit.map(clothesId => {
-            const item = clothes.find(c => c.id === clothesId);
-            if (item) {
-                return `<div class="outfit-item ${getCategoryClass(item.category).replace('category-tag ', '')}">${item.name}</div>`;
-            }
-            return '';
-        }).join('');
-    } else {
-        selectedDateOutfitEl.innerHTML = '<p class="empty-state">この日は記録がありません</p>';
-    }
-
-    // チェックリスト
-    const checklistEl = document.getElementById('clothes-checklist');
-    
-    if (clothes.length > 0) {
-        checklistEl.innerHTML = clothes.map(item => `
-            <div class="checkbox-item">
-                <input
-                    type="checkbox"
-                    ${selectedDateOutfit && selectedDateOutfit.includes(item.id) ? 'checked' : ''}
-                    onchange="toggleOutfit(${item.id})"
-                />
-                <span class="checkbox-label ${getCategoryClass(item.category).replace('category-tag ', '')}">${item.name}</span>
-            </div>
-        `).join('');
-    } else {
-        checklistEl.innerHTML = '<p class="empty-state">服を追加してください</p>';
-    }
-}
-
-// 日付の更新
-function updateSelectedDate() {
-    selectedDate = document.getElementById('date-picker').value;
-    updateCalendarScreen();
-    if (currentTab === 'home') updateHomeScreen();
-}
-
-// 服装の切り替え
-function toggleOutfit(clothesId) {
-    const currentOutfit = outfits[selectedDate] || [];
-    
-    if (currentOutfit.includes(clothesId)) {
-        outfits[selectedDate] = currentOutfit.filter(id => id !== clothesId);
-    } else {
-        outfits[selectedDate] = [...currentOutfit, clothesId];
-    }
-    
-    localStorage.setItem('closet-outfits', JSON.stringify(outfits));
-    updateCalendarScreen();
-    if (currentTab === 'home') updateHomeScreen();
-}
-
-// 服を着る
-function wearClothes(clothesId) {
-    const currentOutfit = outfits[selectedDate] || [];
-    if (!currentOutfit.includes(clothesId)) {
-        outfits[selectedDate] = [...currentOutfit, clothesId];
-        localStorage.setItem('closet-outfits', JSON.stringify(outfits));
-        updateHomeScreen();
-    }
-}
-
-// レコメンド機能
-function getRecommendations() {
-    if (clothes.length === 0) return [];
-    
-    const recentOutfits = Object.values(outfits).flat();
-    const lessWornClothes = clothes.filter(item => 
-        !recentOutfits.includes(item.id) || 
-        recentOutfits.filter(id => id === item.id).length < 2
-    );
-    
-    return lessWornClothes.slice(0, 3);
-}
-
-// 初期化
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('date-picker').value = selectedDate;
-    updateHomeScreen();
-    fetchWeather(); // 天気情報を取得
-    
-    // 画像選択時の処理
-    document.getElementById('clothes-image').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            resizeImage(file, function(dataURL) {
-                console.log('画像をリサイズしました');
-            });
+            page.classList.remove('active');
         }
     });
+
+    // --- ウィンドウリサイズ対応 ---
+    window.addEventListener('resize', () => {
+        // デスクトップサイズの場合、サイドバーの状態をリセット
+        if (window.innerWidth > 768) {
+            if (sidebar.classList.contains('open')) {
+                sidebarOverlay.classList.remove('active');
+            }
+        }
+    });
+
+    // --- Escキーでサイドバーを閉じる ---
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+            toggleSidebar();
+        }
+    });
+
+    console.log('アプリケーション初期化完了✨');
 });
-                
