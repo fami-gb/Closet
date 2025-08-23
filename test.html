@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClosetUp</title>
+    <style>
+        /* CSS (デザイン) */
+        :root {
+            --primary-color: #5d5d81;
+            --secondary-color: #bfa8e0;
+            --background-color: #f4f4f9;
+            --text-color: #333;
+            --card-bg-color: #ffffff;
+            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+        }
+
+        /* --- サイドバー --- */
+        .sidebar {
+            width: 220px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .sidebar h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar nav li {
+            padding: 15px 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        .sidebar nav li:hover, .sidebar nav li.active {
+            background-color: var(--secondary-color);
+        }
+
+        /* --- メインコンテンツ --- */
+        .main-content {
+            margin-left: 220px; /* サイドバーの幅 */
+            flex-grow: 1;
+            padding: 30px;
+        }
+
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* --- カード共通スタイル --- */
+        .card {
+            background-color: var(--card-bg-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        /* --- 天気ウィジェット --- */
+        .weather-widget {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        .weather-widget .location {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .weather-widget .temp {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .weather-widget .condition {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        /* --- おすすめコーデ --- */
+        .recommendation .rec-image {
+            width: 100%;
+            height: 250px;
+            background-color: #eee;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 18px;
+        }
+        .recommendation h3 {
+            margin: 0 0 10px 0;
+        }
+
+        /* --- 服の管理ページ --- */
+        .item-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .clothing-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .clothing-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .clothing-item .item-name {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .item-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        .item-actions button {
+            background: rgba(255,255,255,0.8);
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            line-height: 0;
+        }
+
+        /* --- 服の登録モーダル --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .modal-content .image-preview {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .modal-content .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-actions button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-actions .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .modal-actions .cancel-btn {
+            background-color: #eee;
+        }
+
+        /* --- フローティング追加ボタン --- */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h1>ClosetUp</h1>
+        <nav>
+            <ul>
+                <li class="nav-item active" data-page="home">🏠 ホーム</li>
+                <li class="nav-item" data-page="calendar">🗓️ カレンダー</li>
+                <li class="nav-item" data-page="closet">👕 服の管理</li>
+                <li class="nav-item" data-page="weather">🌦️ 全国の天気</li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main-content">
+
+        <div id="home" class="page active">
+            <h2>ホーム</h2>
+            <div class="card weather-widget">
+                <div>
+                    <div class="location">静岡県富士市</div>
+                    <div class="condition" id="weather-condition">晴れ</div>
+                </div>
+                <div>
+                    <div class="temp" id="weather-temp">28<span style="font-size: 24px;">°C</span></div>
+                </div>
+                <div>
+                    <div>最高: 32°C</div>
+                    <div>最低: 24°C</div>
+                </div>
+            </div>
+            <div class="card recommendation">
+                <h3>今日のおすすめコーデ (by Gemini API)</h3>
+                <div class="rec-image"></div>
+                <p><strong>今日の予定:</strong> 友人とのランチ</p>
+                <p>今日は日差しが強いので、涼しいリネンのシャツに、動きやすいチノパンを合わせるのがおすすめです。足元はサンダルで軽快に！</p>
+            </div>
+        </div>
+
+        <div id="calendar" class="page">
+            <h2>カレンダー</h2>
+            <p>ここにカレンダーが表示され、クリックした日にコーディネートを登録できます。（UIデモ）</p>
+            
+        </div>
+
+        <div id="closet" class="page">
+            <h2>服の管理</h2>
+            <div id="item-gallery" class="item-gallery">
+                </div>
+        </div>
+
+        <div id="weather" class="page">
+            <h2>全国の天気</h2>
+            <p>ここに全国の天気予報が表示されます。（UIデモ）</p>
+            
+        </div>
+
+    </div>
+
+    <button id="fab" class="fab">+</button>
+
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">服を新しく登録</h2>
+            <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
+            <div id="imagePreview" class="image-preview">
+                クリックして画像を選択
+            </div>
+            <input type="text" id="itemName" placeholder="アイテム名 (例: 白いTシャツ)">
+            <select id="itemCategory">
+                <option value="tops">トップス</option>
+                <option value="bottoms">ボトムス</option>
+                <option value="outerwear">アウター</option>
+                <option value="shoes">シューズ</option>
+                <option value="accessory">アクセサリー</option>
+            </select>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="cancel-btn">キャンセル</button>
+                <button id="save-btn" class="save-btn">保存</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript (動作)
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const pages = document.querySelectorAll('.page');
+            const fab = document.getElementById('fab');
+            const modal = document.getElementById('addItemModal');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const imagePreview = document.getElementById('imagePreview');
+            const imageInput = document.getElementById('itemImageInput');
+            const saveBtn = document.getElementById('save-btn');
+            const itemGallery = document.getElementById('item-gallery');
+            const modalTitle = document.getElementById('modal-title');
+            
+            let editingItemId = null; // 編集中のアイテムIDを保持
+
+            // --- サンプルデータ ---
+            const initialItems = [
+                { id: 1, name: '白いTシャツ', category: 'tops', image: 'https://via.placeholder.com/150/ffffff/000000?Text=T-Shirt' },
+                { id: 2, name: 'ブルージーンズ', category: 'bottoms', image: 'https://via.placeholder.com/150/0000FF/FFFFFF?Text=Jeans' },
+                { id: 3, name: '黒いジャケット', category: 'outerwear', image: 'https://via.placeholder.com/150/000000/FFFFFF?Text=Jacket' }
+            ];
+            let clothingItems = [...initialItems];
+
+            // --- 服の管理: 初期表示 ---
+            function renderCloset() {
+                itemGallery.innerHTML = '';
+                clothingItems.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('clothing-item');
+                    itemDiv.dataset.id = item.id;
+                    itemDiv.innerHTML = `
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-actions">
+                            <button class="edit-btn" title="編集">✏️</button>
+                            <button class="delete-btn" title="削除">🗑️</button>
+                        </div>
+                    `;
+                    itemGallery.appendChild(itemDiv);
+                });
+            }
+
+
+            // --- ナビゲーション切り替え ---
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // アクティブなスタイルを変更
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+
+                    // 表示ページを切り替え
+                    const targetPageId = item.dataset.page;
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                        if (page.id === targetPageId) {
+                            page.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // --- モーダル表示/非表示 ---
+            function openModal(mode = 'add', item = null) {
+                modal.style.display = 'flex';
+                if (mode === 'edit' && item) {
+                    modalTitle.textContent = '服を編集';
+                    document.getElementById('itemName').value = item.name;
+                    document.getElementById('itemCategory').value = item.category;
+                    imagePreview.innerHTML = `<img src="${item.image}" alt="Preview">`;
+                    editingItemId = item.id;
+                } else {
+                    modalTitle.textContent = '服を新しく登録';
+                    document.getElementById('itemName').value = '';
+                    document.getElementById('itemCategory').value = 'tops';
+                    imagePreview.innerHTML = 'クリックして画像を選択';
+                    editingItemId = null;
+                }
+            }
+            
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+
+            fab.addEventListener('click', () => openModal('add'));
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            
+            // --- 画像プレビュー ---
+            imagePreview.addEventListener('click', () => imageInput.click());
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // --- 服の保存/更新処理 ---
+            saveBtn.addEventListener('click', () => {
+                const name = document.getElementById('itemName').value;
+                const category = document.getElementById('itemCategory').value;
+                const imageSrc = imagePreview.querySelector('img')?.src || 'https://via.placeholder.com/150/cccccc/000000?Text=No+Image';
+
+                if (!name) {
+                    alert('アイテム名を入力してください。');
+                    return;
+                }
+
+                if (editingItemId) {
+                    // 更新処理
+                    const itemIndex = clothingItems.findIndex(item => item.id === editingItemId);
+                    if (itemIndex > -1) {
+                        clothingItems[itemIndex] = { ...clothingItems[itemIndex], name, category, image: imageSrc };
+                    }
+                } else {
+                    // 新規追加処理
+                    const newItem = {
+                        id: Date.now(), // ユニークなIDを生成
+                        name: name,
+                        category: category,
+                        image: imageSrc
+                    };
+                    clothingItems.push(newItem);
+                }
+
+                renderCloset();
+                closeModal();
+            });
+
+            // --- 服の編集/削除 ---
+            itemGallery.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                if (!target) return;
+
+                const parentItem = target.closest('.clothing-item');
+                const itemId = Number(parentItem.dataset.id);
+
+                if (target.classList.contains('edit-btn')) {
+                    const itemToEdit = clothingItems.find(item => item.id === itemId);
+                    openModal('edit', itemToEdit);
+                }
+
+                if (target.classList.contains('delete-btn')) {
+                    if (confirm('このアイテムを本当に削除しますか？')) {
+                        clothingItems = clothingItems.filter(item => item.id !== itemId);
+                        renderCloset();
+                    }
+                }
+            });
+
+            // --- 初期化 ---
+            renderCloset();
+        });
+    </script>
+</body>
+</html>
