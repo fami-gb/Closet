@@ -5,13 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>クローゼットアプリ</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/32f6a193e9.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div id="app" class="container">
         <!-- ヘッダー -->
         <div class="header">
+            <button id="menu-toggle" class="menu-toggle" onclick="toggleSidebar()">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
             <h1>クローゼット</h1>
         </div>
+
+        <!-- サイドバー -->
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>メニュー</h2>
+                <button id="sidebar-close" class="sidebar-close" onclick="toggleSidebar()">
+                    ✕
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <button onclick="showTab('home'); toggleSidebar();" class="sidebar-nav-item">
+                    🏠 ホーム
+                </button>
+                <button onclick="showTab('clothes'); toggleSidebar();" class="sidebar-nav-item">
+                    👔 服管理
+                </button>
+                <button onclick="showTab('calendar'); toggleSidebar();" class="sidebar-nav-item">
+                    📅 着用履歴
+                </button>
+                <div class="sidebar-divider"></div>
+                <button onclick="exportData(); toggleSidebar();" class="sidebar-nav-item">
+                    📤 データエクスポート
+                </button>
+                <button onclick="importData(); toggleSidebar();" class="sidebar-nav-item">
+                    📥 データインポート
+                </button>
+            </nav>
+        </div>
+
+        <!-- サイドバーオーバーレイ -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
         <!-- メインコンテンツ -->
         <div class="content" id="content">
@@ -34,7 +71,7 @@
                 <!-- 今日の服装 -->
                 <div class="card">
                     <h3 class="section-title">
-                        👔 今日の服装
+                        今日の服装
                     </h3>
                     <div id="today-outfit" class="empty-state">
                         まだ記録されていません

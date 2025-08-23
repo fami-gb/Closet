@@ -5,6 +5,70 @@ let outfits = JSON.parse(localStorage.getItem('closet-outfits') || '{}');
 let selectedDate = new Date().toISOString().split('T')[0];
 let weatherData = null;
 
+// サイドバーの表示/非表示を切り替え
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+    } else {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+    }
+}
+
+// データエクスポート機能
+function exportData() {
+    const data = {
+        clothes: clothes,
+        outfits: outfits,
+        exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `closet-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// データインポート機能
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.clothes && data.outfits) {
+                        clothes = data.clothes;
+                        outfits = data.outfits;
+                        saveData();
+                        updateAllDisplays();
+                        alert('データをインポートしました！');
+                    } else {
+                        alert('無効なファイル形式です。');
+                    }
+                } catch (error) {
+                    alert('ファイルの読み込みに失敗しました。');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+    input.click();
+}
+
 // 天気情報を取得
 async function fetchWeather() {
     try {
@@ -400,11 +464,30 @@ function getRecommendations() {
     return lessWornClothes.slice(0, 3);
 }
 
+// 全ての表示を更新
+function updateAllDisplays() {
+    updateHomeScreen();
+    updateClothesScreen();
+    updateCalendarScreen();
+}
+
+// データを保存
+function saveData() {
+    localStorage.setItem('closet-clothes', JSON.stringify(clothes));
+    localStorage.setItem('closet-outfits', JSON.stringify(outfits));
+}
+
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('date-picker').value = selectedDate;
     updateHomeScreen();
     fetchWeather(); // 天気情報を取得
+    
+    // サイドバーを閉じた状態で初期化
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
     
     // 画像選択時の処理
     document.getElementById('clothes-image').addEventListener('change', function(e) {
